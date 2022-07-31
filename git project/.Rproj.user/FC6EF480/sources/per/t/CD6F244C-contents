@@ -1,0 +1,97 @@
+
+rm(list=ls())
+library(ggpubr)
+library(dplyr)
+library(Hmisc)
+library(readxl)
+library(ggplot2)
+library(caTools)
+library(car)
+library(GGally)
+library(VGAM)
+library(corrr)
+library(corrplot)
+library(pairsD3)
+
+kaatru <- read.csv("C:/Users/MOHAN/Downloads/KAATRU Project/kaatru.csv")
+df1 <- data.frame(kaatru)
+Bike_share <- na.omit(df1)
+
+head(Bike_share)
+
+summary(Bike_share)
+describe(Bike_share)
+
+duplicated(Bike_share)
+sum(duplicated(Bike_share))
+#count(numbers)
+
+df<- data.frame(x = Bike_share)
+df%>%
+  slice(7:(nrow(.)-6))
+#col <- which(df==2, arr.col=TRUE)
+#data.frame(row = row.names(df)[coln[,1]],)
+
+colnames(Bike_share)
+
+#removing unwanted columns 
+
+#Bike_share1 <- Bike_share['instant' , 'dteday','season','yr','mnth','holiday''weekday','workingday','weathersit','temp','atemp','hum','windspeed','casual','registered','cnt' ]
+Bike_share1 = Bike_share[,c("season","yr","mnth","holiday","weekday","workingday","weathersit","temp","atemp","hum","windspeed","cnt")]
+
+summary(Bike_share1)
+describe(Bike_share1)
+
+#checking columns whether numerical or categorical and changing their datatype accordingly 
+str(Bike_share1)
+
+Bike_share1$season <- as.factor(Bike_share1$season)
+Bike_share1$yr <- as.factor(Bike_share1$yr )
+Bike_share1$holiday <- as.factor(Bike_share1$holiday )
+Bike_share1$workingday <- as.factor(Bike_share1$workingday )
+Bike_share1$weathersit <- as.factor(Bike_share1$weathersit )
+Bike_share1$weekday <- as.factor(Bike_share1$weekday )
+Bike_share1$mnth <- as.factor(Bike_share1$mnth)
+str(Bike_share1)
+count(Bike_share1)
+ncol(Bike_share1)
+describe(Bike_share1)
+
+par("mar")
+
+par(mar=c(1,1,1,1)+1)
+plot(Bike_share1)
+abline(Bike_share1, col= "red" , lwd = 2)
+
+
+#correlation check between variables
+
+cor_bike <- cor(Bike_share[,unlist(lapply(Bike_share1, is.numeric))])
+
+p.mat <- ggcorrplot::cor_pmat(cor_bike)
+ggcorrplot::ggcorrplot(cor_bike)
+ggcorrplot::ggcorrplot(cor_bike, hc.order = TRUE, lab = TRUE,method = "circle", outline.color = "white", p.mat = p.mat)                              
+ggcorrplot::ggcorrplot(cor_bike, hc.order = TRUE, lab = TRUE,method = "circle", outline.color = "white", insig = "blank")
+
+boxplot(cnt~season,data=Bike_share1,col="orange",border="brown")
+boxplot(cnt~yr ,data=Bike_share1,col="orange",border="brown")
+boxplot(cnt~mnth,data=Bike_share1,col="orange",border="brown")
+boxplot(cnt~holiday,data=Bike_share1,col="orange",border="brown")
+boxplot(cnt~weekday,data=Bike_share1,col="orange",border="brown")
+boxplot(cnt~workingday,data=Bike_share1,col="orange",border="brown")
+boxplot(cnt~weathersit,data=Bike_share1,col="orange",border="brown")
+
+
+mul_reg1 <- lm(cnt ~ ., data=Bike_share1)
+
+summary(mul_reg1)
+vif_values <- vif(mul_reg1)
+
+#barplot(vif_values, main = "VIF Values", horiz = TRUE, col = "blue") #create horizontal bar chart to display each VIF value
+#abline(v = 5, lwd = 3, lty = 2)    #add vertical line at 5 as after 5 there is severe correlation
+
+mul_reg2 <- lm(cnt ~ .-atemp, data=Bike_share1)
+summary(mul_reg2)
+vif(mul_reg2)
+
+
